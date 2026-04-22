@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STREAM - Water Quality Monitoring</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-water"></i> STREAM
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="#map" class="nav-link">Map</a></li>
+                <li><a href="#remediation" class="nav-link">Remediation</a></li>
+                <li><a href="#ph-calculator" class="nav-link">pH Calc</a></li>
+                <li><a href="#energy-calculator" class="nav-link">Energy Calc</a></li>
+                <li><a href="#report" class="nav-link">Report</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home" class="section home-section">
+        <div class="hero-content">
+            <h1>STREAM</h1>
+            <p class="subtitle">Systematic Tracking and Remediation of Environmental Aquatic Media</p>
+            <p class="hero-description">Monitor water quality in real-time, detect pollution, and get remediation suggestions to protect our aquatic ecosystems.</p>
+            <button class="cta-button" onclick="scrollToSection('dashboard')">Start Monitoring</button>
+        </div>
+        <div class="hero-image">
+            <i class="fas fa-globe-americas"></i>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="section">
+        <div class="container">
+            <h2>Water Quality Dashboard</h2>
+            
+            <!-- Status Indicator -->
+            <div class="status-indicator">
+                <div class="status-card">
+                    <span class="status-label">Overall Status:</span>
+                    <div class="status-badge" id="statusBadge">
+                        <i class="fas fa-check-circle"></i> Safe
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water Quality Parameters -->
+            <div class="parameters-grid">
+                <div class="parameter-card">
+                    <div class="parameter-header">
+                        <i class="fas fa-flask-vial"></i>
+                        <h3>pH Level</h3>
+                    </div>
+                    <div class="parameter-value" id="phValue">7.2</div>
+                    <div class="parameter-range">Range: 6.5 - 8.5 (Optimal)</div>
+                    <div class="parameter-status" id="phStatus">✓ Healthy</div>
+                </div>
+
+                <div class="parameter-card">
+                    <div class="parameter-header">
+                        <i class="fas fa-eye-slash"></i>
+                        <h3>Turbidity</h3>
+                    </div>
+                    <div class="parameter-value" id="turbidityValue">2.1</div>
+                    <div class="parameter-range">Range: 0 - 5 NTU (Good)</div>
+                    <div class="parameter-status" id="turbidityStatus">✓ Healthy</div>
+                </div>
+
+                <div class="parameter-card">
+                    <div class="parameter-header">
+                        <i class="fas fa-thermometer-half"></i>
+                        <h3>Temperature</h3>
+                    </div>
+                    <div class="parameter-value" id="temperatureValue">22</div>
+                    <div class="parameter-range">Range: 20 - 30 °C (Optimal)</div>
+                    <div class="parameter-status" id="temperatureStatus">✓ Healthy</div>
+                </div>
+
+                <div class="parameter-card">
+                    <div class="parameter-header">
+                        <i class="fas fa-droplet"></i>
+                        <h3>TDS</h3>
+                    </div>
+                    <div class="parameter-value" id="tdsValue">450</div>
+                    <div class="parameter-range">Range: 300 - 600 ppm (Good)</div>
+                    <div class="parameter-status" id="tdsStatus">✓ Healthy</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>pH Level Trend</h3>
+                    <canvas id="phChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Turbidity Trend</h3>
+                    <canvas id="turbidityChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Temperature Trend</h3>
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>TDS Trend</h3>
+                    <canvas id="tdsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Data Update Button -->
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="updateData()">
+                    <i class="fas fa-sync-alt"></i> Update Data
+                </button>
+                <button class="btn btn-secondary" onclick="generateReport()">
+                    <i class="fas fa-file-pdf"></i> Generate Report
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section id="map" class="section map-section">
+        <div class="container">
+            <h2>Monitoring Locations</h2>
+            <p class="section-description">Click on markers to view water quality data for specific locations.</p>
+            <div id="mapContainer" class="map-container"></div>
+            <div class="location-info" id="locationInfo">
+                <h3>Select a location on the map</h3>
+                <p>Click on any marker to see detailed water quality information for that location.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Remediation Section -->
+    <section id="remediation" class="section">
+        <div class="container">
+            <h2>Remediation Suggestions</h2>
+            <p class="section-description">Based on current water quality parameters, here are recommended actions.</p>
+            
+            <div class="remediation-cards" id="remediationCards">
+                <div class="remediation-card">
+                    <div class="remediation-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>pH Balancing</h3>
+                    <p>Maintain pH levels between 6.5-8.5 for optimal aquatic life. Current: 7.2 ✓</p>
+                </div>
+
+                <div class="remediation-card">
+                    <div class="remediation-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <h3>Turbidity Control</h3>
+                    <p>Keep turbidity below 5 NTU. Use filtration systems if needed. Current: 2.1 NTU ✓</p>
+                </div>
+
+                <div class="remediation-card">
+                    <div class="remediation-icon">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                    <h3>Temperature Management</h3>
+                    <p>Optimal range is 20-30°C. Maintain shade to prevent overheating. Current: 22°C ✓</p>
+                </div>
+
+                <div class="remediation-card">
+                    <div class="remediation-icon">
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    <h3>TDS Regulation</h3>
+                    <p>Total Dissolved Solids should be 300-600 ppm. Current: 450 ppm ✓</p>
+                </div>
+            </div>
+
+            <div class="remediation-actions">
+                <h3>Recommended Actions</h3>
+                <ul id="actionsList">
+                    <li>✓ Water quality is within safe parameters</li>
+                    <li>✓ Continue regular monitoring</li>
+                    <li>✓ Maintain current treatment levels</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- pH Calculator Section -->
+    <section id="ph-calculator" class="section calculator-section">
+        <div class="container">
+            <h2>pH Value Calculator</h2>
+            <p class="section-description">Calculate pH from hydrogen ion concentration or vice versa.</p>
+            
+            <div class="calculator-grid">
+                <div class="calculator-card">
+                    <h3>H+ Concentration to pH</h3>
+                    <div class="form-group">
+                        <label for="hydrogenConc">H+ Concentration (mol/L)</label>
+                        <input type="number" id="hydrogenConc" placeholder="e.g., 0.0000001" step="0.0000001" min="0">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculatePHFromConcentration()">
+                        <i class="fas fa-calculator"></i> Calculate pH
+                    </button>
+                    <div class="result-box" id="phResult"></div>
+                </div>
+
+                <div class="calculator-card">
+                    <h3>pH to H+ Concentration</h3>
+                    <div class="form-group">
+                        <label for="phValue">pH Value</label>
+                        <input type="number" id="phValue" placeholder="e.g., 7" step="0.1" min="0" max="14">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateConcentrationFromPH()">
+                        <i class="fas fa-calculator"></i> Calculate Concentration
+                    </button>
+                    <div class="result-box" id="concentrationResult"></div>
+                </div>
+
+                <div class="calculator-card">
+                    <h3>pH Analysis</h3>
+                    <div class="form-group">
+                        <label for="phAnalysis">Enter pH Value</label>
+                        <input type="number" id="phAnalysis" placeholder="e.g., 7" step="0.1" min="0" max="14">
+                    </div>
+                    <button class="btn btn-primary" onclick="analyzePH()">
+                        <i class="fas fa-flask-vial"></i> Analyze pH
+                    </button>
+                    <div class="result-box" id="phAnalysisResult"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Energy Calculator Section -->
+    <section id="energy-calculator" class="section calculator-section">
+        <div class="container">
+            <h2>Water Treatment Energy Calculator</h2>
+            <p class="section-description">Estimate energy requirements for water treatment based on parameters.</p>
+            
+            <div class="calculator-grid">
+                <div class="calculator-card">
+                    <h3>Filtration Energy</h3>
+                    <div class="form-group">
+                        <label for="turbidityEnergy">Turbidity (NTU)</label>
+                        <input type="number" id="turbidityEnergy" placeholder="e.g., 2.5" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="waterVolume">Water Volume (Liters)</label>
+                        <input type="number" id="waterVolume" placeholder="e.g., 1000" step="100" min="0">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateFiltrationEnergy()">
+                        <i class="fas fa-leaf"></i> Calculate Energy
+                    </button>
+                    <div class="result-box" id="filtrationResult"></div>
+                </div>
+
+                <div class="calculator-card">
+                    <h3>Temperature Adjustment Energy</h3>
+                    <div class="form-group">
+                        <label for="currentTemp">Current Temperature (°C)</label>
+                        <input type="number" id="currentTemp" placeholder="e.g., 22" step="0.1" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="targetTemp">Target Temperature (°C)</label>
+                        <input type="number" id="targetTemp" placeholder="e.g., 25" step="0.1" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="tempVolume">Water Volume (Liters)</label>
+                        <input type="number" id="tempVolume" placeholder="e.g., 1000" step="100" min="0">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateTemperatureEnergy()">
+                        <i class="fas fa-thermometer-half"></i> Calculate Energy
+                    </button>
+                    <div class="result-box" id="temperatureEnergyResult"></div>
+                </div>
+
+                <div class="calculator-card">
+                    <h3>Total Treatment Energy</h3>
+                    <div class="form-group">
+                        <label for="tdsEnergy">TDS (ppm)</label>
+                        <input type="number" id="tdsEnergy" placeholder="e.g., 450" step="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalVolume">Water Volume (Liters)</label>
+                        <input type="number" id="totalVolume" placeholder="e.g., 1000" step="100" min="0">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateTotalEnergy()">
+                        <i class="fas fa-bolt"></i> Calculate Total Energy
+                    </button>
+                    <div class="result-box" id="totalEnergyResult"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Report Pollution Form -->
+    <section id="report" class="section">
+        <div class="container">
+            <h2>Report Water Pollution</h2>
+            <p class="section-description">Help us track pollution incidents. Report any unusual observations.</p>
+            
+            <div class="form-container">
+                <form id="pollutionForm" onsubmit="submitReport(event)">
+                    <div class="form-group">
+                        <label for="reporterName">Your Name</label>
+                        <input type="text" id="reporterName" required placeholder="Enter your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reporterEmail">Email</label>
+                        <input type="email" id="reporterEmail" required placeholder="your@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location (Coordinates or Description)</label>
+                        <input type="text" id="location" required placeholder="e.g., Lat: 28.6139, Lng: 77.2090 or Street name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pollutionType">Type of Pollution</label>
+                        <select id="pollutionType" required>
+                            <option value="">Select type...</option>
+                            <option value="chemical">Chemical Pollution</option>
+                            <option value="plastic">Plastic Waste</option>
+                            <option value="algae">Algal Bloom</option>
+                            <option value="oil">Oil Spill</option>
+                            <option value="industrial">Industrial Waste</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="severity">Severity Level</label>
+                        <select id="severity" required>
+                            <option value="">Select severity...</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" required placeholder="Describe the pollution incident..." rows="5"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">Upload Image (Optional)</label>
+                        <input type="file" id="image" accept="image/*">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </form>
+            </div>
+
+            <div class="reports-list" id="reportsList">
+                <h3>Recent Reports</h3>
+                <div id="reportsContainer" class="reports-container">
+                    <!-- Reports will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About STREAM</h4>
+                    <p>Systematic Tracking and Remediation of Environmental Aquatic Media - Protecting our water resources for future generations.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#dashboard">Dashboard</a></li>
+                        <li><a href="#map">Map</a></li>
+                        <li><a href="#report">Report</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: info@stream-water.org</p>
+                    <p>Phone: +1 (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 STREAM. All rights reserved. | Protecting Earth's Water Resources</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
